@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transportes Demo · Pasajes</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230E3B75%22/%3E%3Ctext x=%2216%22 y=%2221%22 font-size=%2213%22 font-family=%22Arial%22 font-weight=%22700%22 fill=%22%23F59E0B%22 text-anchor=%22middle%22%3ETD%3C/text%3E%3C/svg%3E">
+<meta name="description" content="Demo navegable de un sistema de venta de pasajes, encomiendas y giros. Datos de prueba.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#0E3B75;--brand-2:#1356A8;--accent:#F59E0B;--accent-soft:#FFF4DC;
+  --ok:#0F9D74;--ok-soft:#E3F6EF;--bad:#D14343;--bad-soft:#FDECEC;
+  --ink:#0F172A;--muted:#5B6478;--line:#E3E7EF;--paper:#FFFFFF;--ground:#F4F6FA;
+  --seat:#FFFFFF;--seat-line:#C9D3E6;--sold:#E5E7EB;--pick:#0F9D74;--wa:#128C7E;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ground);color:var(--ink);font-family:Inter,system-ui,"Segoe UI",sans-serif;font-size:14px;line-height:1.5}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--brand-2)}
+.demo-bar{background:var(--accent-soft);color:#7A4A00;font-size:12.5px;padding:7px 16px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;text-align:center}
+.demo-bar button{background:none;border:0;color:#7A4A00;text-decoration:underline;cursor:pointer;font-weight:600;padding:0}
+.top{background:var(--brand);color:#fff;position:sticky;top:0;z-index:20}
+.top .in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.01em;margin-right:auto}
+.brand .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);color:var(--brand);display:grid;place-items:center;font-weight:800;font-size:14px}
+.brand small{display:block;font-weight:500;font-size:11px;color:#BFD2F0;letter-spacing:0}
+.views{display:flex;gap:4px;background:rgba(255,255,255,.1);padding:4px;border-radius:12px;overflow-x:auto;max-width:100%}
+.views a{color:#DCE6F7;text-decoration:none;padding:7px 14px;border-radius:9px;font-weight:600;font-size:13px;white-space:nowrap}
+.views a.on{background:#fff;color:var(--brand)}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 90px}
+h1,h2,h3{margin:0;letter-spacing:-.01em}
+h2{font-size:20px}
+h3{font-size:15px}
+.muted{color:var(--muted)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.split{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:var(--brand-2);color:#fff;text-decoration:none}
+.btn:hover{filter:brightness(1.08)}
+.btn.sec{background:#fff;color:var(--brand-2);border:1.5px solid var(--brand-2)}
+.btn.ghost{background:transparent;color:var(--brand-2);padding:6px 8px}
+.btn.ok{background:var(--ok)}
+.btn.acc{background:var(--accent);color:#3B2600}
+.btn.sm{padding:6px 10px;font-size:12.5px;border-radius:8px}
+.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:10px;background:#fff}
+input:focus,select:focus{outline:none;border-color:var(--brand-2)}
+.f{margin-bottom:10px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#EEF2F8;color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.acc{background:var(--accent-soft);color:#8A5300}
+.pill.blue{background:#E6EEFB;color:var(--brand-2)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;background:#F8FAFD}
+td.r,th.r{text-align:right}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+.tablewrap tr:last-child td{border-bottom:0}
+.sub{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.sub a{padding:8px 14px;border-radius:10px;background:#fff;border:1px solid var(--line);text-decoration:none;color:var(--ink);font-weight:600;font-size:13px}
+.sub a.on{background:var(--brand);border-color:var(--brand);color:#fff}
+/* Hero web */
+.hero{background:linear-gradient(120deg,var(--brand) 0%,var(--brand-2) 100%);color:#fff;border-radius:18px;padding:28px;margin-bottom:16px;position:relative;overflow:hidden}
+.hero h1{font-size:30px;line-height:1.15;max-width:560px}
+.hero p{color:#D6E3F7;max-width:560px;margin:8px 0 18px}
+.hero .search{background:#fff;color:var(--ink);border-radius:14px;padding:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:end;max-width:860px}
+.hero .search .f{margin:0}
+.hero .road{position:absolute;right:-40px;top:-40px;width:260px;height:260px;border-radius:50%;border:2px dashed rgba(255,255,255,.18)}
+.perks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.perks div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;color:var(--muted)}
+.perks b{display:block;color:var(--ink);font-size:13px}
+.steps{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.steps span{font-size:12px;font-weight:600;color:var(--muted);padding:5px 10px;border-radius:999px;background:#fff;border:1px solid var(--line)}
+.steps span.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.steps span.done{background:var(--ok-soft);border-color:var(--ok-soft);color:var(--ok)}
+.dep{display:grid;grid-template-columns:90px minmax(0,1fr) 120px 130px;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px}
+.dep .t{font-size:20px;font-weight:800}
+.dep .p{font-size:18px;font-weight:800;text-align:right}
+.dep.closed{opacity:.55}
+/* Asientos */
+.bus{background:#F8FAFD;border:1px solid var(--line);border-radius:22px 22px 14px 14px;padding:16px;display:inline-block}
+.bus .front{font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;letter-spacing:.08em;text-transform:uppercase}
+.seats{display:grid;gap:8px;justify-content:center}
+.seat{width:44px;height:42px;border-radius:10px 10px 6px 6px;border:1.5px solid var(--seat-line);background:var(--seat);display:grid;place-items:center;font-weight:700;font-size:13px;cursor:pointer;transition:transform .08s}
+.seat:hover{transform:translateY(-1px);border-color:var(--brand-2)}
+.seat.sold{background:var(--sold);border-color:var(--sold);color:#9CA3AF;cursor:not-allowed;transform:none}
+.seat.pick{background:var(--pick);border-color:var(--pick);color:#fff}
+.seat.drv{background:var(--brand);border-color:var(--brand);color:#fff;font-size:9px;cursor:default}
+.seat.gap{border:0;background:transparent;cursor:default}
+.legend{display:flex;gap:14px;justify-content:center;font-size:12px;color:var(--muted);margin-top:12px;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;border:1.5px solid var(--seat-line);background:#fff}
+.legend i.sold{background:var(--sold);border-color:var(--sold)}.legend i.pick{background:var(--pick);border-color:var(--pick)}
+.summary .line{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.summary .line:last-child{border-bottom:0}
+.summary .tot{font-size:18px;font-weight:800}
+.timer{background:var(--accent-soft);color:#8A5300;border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:600;margin-bottom:10px}
+.pay{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.pay button{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:14px;text-align:left;cursor:pointer}
+.pay button.on{border-color:var(--brand-2);box-shadow:0 0 0 3px #E6EEFB}
+.pay b{display:block;font-size:15px}
+.yape{display:inline-block;background:#742284;color:#fff;font-weight:800;border-radius:6px;padding:1px 7px;font-size:12px}
+.ticket{border:1.5px dashed var(--seat-line);border-radius:16px;padding:18px;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:16px}
+.ticket .qr{display:grid;place-items:center;background:#F8FAFD;border-radius:12px;padding:8px;min-height:140px}
+.ok-head{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.ok-head .ic{width:44px;height:44px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:22px;font-weight:800;flex:none}
+/* Panel */
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;border-top:3px solid var(--brand-2)}
+.kpi b{display:block;font-size:22px;font-weight:800;margin-top:2px}
+.kpi span{font-size:12px;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:10px}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.bars .b i{display:block;width:100%;max-width:46px;border-radius:7px 7px 3px 3px;background:var(--brand-2)}
+.bars .b.today i{background:var(--accent)}
+.bars .b small{font-size:11px;color:var(--muted)}
+.bars .b em{font-style:normal;font-size:10.5px;color:var(--ink);font-weight:700}
+.hbar{display:grid;grid-template-columns:150px minmax(0,1fr) 90px;gap:10px;align-items:center;font-size:13px;margin:7px 0}
+.hbar .track{height:10px;background:#EEF2F8;border-radius:99px;overflow:hidden}
+.hbar .track i{display:block;height:100%;background:var(--brand-2);border-radius:99px}
+.occ{display:flex;align-items:center;gap:8px;min-width:140px}
+.occ .track{flex:1;height:8px;background:#EEF2F8;border-radius:99px;overflow:hidden}
+.occ .track i{display:block;height:100%;border-radius:99px}
+.tl{list-style:none;padding:0;margin:10px 0 0}
+.tl li{position:relative;padding:0 0 12px 22px;font-size:13px}
+.tl li:before{content:"";position:absolute;left:4px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--seat-line)}
+.tl li.done:before{background:var(--ok)}
+.tl li:after{content:"";position:absolute;left:8.5px;top:17px;bottom:-2px;width:1.5px;background:var(--line)}
+.tl li:last-child:after{display:none}
+/* Modal, toast */
+#modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:grid;place-items:center;z-index:60;padding:16px}
+#modal[hidden]{display:none}
+#modal .box{background:#fff;border-radius:16px;max-width:760px;width:100%;max-height:88vh;overflow:auto;padding:20px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:70;pointer-events:none;max-width:90vw}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Chat WhatsApp */
+#wa-fab{position:fixed;right:18px;bottom:18px;z-index:40;background:var(--wa);color:#fff;border:0;border-radius:999px;padding:12px 18px;font-weight:700;box-shadow:0 10px 30px rgba(18,140,126,.35);cursor:pointer;display:flex;gap:8px;align-items:center}
+#wa{position:fixed;right:18px;bottom:76px;width:360px;max-width:calc(100vw - 36px);height:520px;max-height:calc(100vh - 110px);background:#ECE5DD;border-radius:16px;box-shadow:0 20px 60px rgba(15,23,42,.3);z-index:41;display:flex;flex-direction:column;overflow:hidden}
+#wa[hidden]{display:none}
+#wa .hd{background:var(--wa);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px}
+#wa .hd .av{width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--brand);display:grid;place-items:center;font-weight:800;font-size:13px}
+#wa .hd small{display:block;color:#CDEBE6;font-size:11px}
+#wa .hd button{margin-left:auto;background:none;border:0;color:#fff;font-size:20px;cursor:pointer}
+#wa .msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+#wa .m{max-width:84%;padding:7px 10px;border-radius:10px;font-size:13px;white-space:pre-line;box-shadow:0 1px 1px rgba(0,0,0,.06)}
+#wa .m.in{background:#fff;align-self:flex-start;border-top-left-radius:2px}
+#wa .m.out{background:#DCF8C6;align-self:flex-end;border-top-right-radius:2px}
+#wa .chips{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px 0}
+#wa .chips button{background:#fff;border:1px solid #CFE7E3;color:var(--wa);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer}
+#wa form{display:flex;gap:6px;padding:10px}
+#wa form input{border-radius:999px;border:0}
+#wa form button{background:var(--wa);color:#fff;border:0;border-radius:999px;padding:0 14px;font-weight:700;cursor:pointer}
+footer{text-align:center;font-size:12px;color:var(--muted);padding:20px 16px 90px}
+@media (max-width:900px){.g4,.g5{grid-template-columns:repeat(2,minmax(0,1fr))}.split{grid-template-columns:1fr}.perks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.g2,.g3{grid-template-columns:1fr}.hero{padding:20px}.hero h1{font-size:24px}.hero .search{grid-template-columns:1fr}.dep{grid-template-columns:70px minmax(0,1fr);}.dep .p{text-align:left}.ticket{grid-template-columns:1fr}.hbar{grid-template-columns:110px minmax(0,1fr) 70px}.seat{width:38px;height:38px}}
+@media print{
+  body.printing > *:not(#modal){display:none!important}
+  body.printing #modal{position:static;background:none;padding:0}
+  body.printing #modal .box{max-height:none;box-shadow:none;padding:0}
+  body.printing .noprint{display:none!important}
+}
+</style>
+</head>
+<body>
+<div class="demo-bar noprint"><span><b>Demo navegable con datos de prueba.</b> Rutas, horarios, precios y pasajeros son de ejemplo; lo que registres se guarda solo en tu navegador.</span><button type="button" data-action="reset">Reiniciar datos</button></div>
+<header class="top noprint"><div class="in">
+  <div class="brand"><div class="logo">TD</div><div>Transportes Demo<small>Su logo y sus colores aquí</small></div></div>
+  <nav class="views" aria-label="Vistas del sistema">
+    <a href="#/web" data-view="web">Web del pasajero</a>
+    <a href="#/agencia" data-view="agencia">Agencia</a>
+    <a href="#/gerencia" data-view="gerencia">Gerencia</a>
+  </nav>
+</div></header>
+<main id="app"></main>
+<footer class="noprint">Demo preparada por Ilyra Rivas · Web App Developer · <a href="mailto:ilyrivas.dv@gmail.com">ilyrivas.dv@gmail.com</a></footer>
+
+<button id="wa-fab" class="noprint" type="button" data-action="wa-open" aria-label="Abrir chat de WhatsApp"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.6 7.3L3 20l1.3-5A8.5 8.5 0 1 1 21 11.5z"/></svg>WhatsApp</button>
+<section id="wa" class="noprint" hidden aria-label="Chat de WhatsApp simulado">
+  <div class="hd"><div class="av">TD</div><div><b>Transportes Demo</b><small>Asistente automático · simulación</small></div><button type="button" data-action="wa-close" aria-label="Cerrar">×</button></div>
+  <div class="msgs" id="wa-msgs"></div>
+  <div class="chips" id="wa-chips"></div>
+  <form id="wa-form" autocomplete="off"><input id="wa-input" placeholder="Escribe un mensaje" aria-label="Mensaje"><button type="submit">Enviar</button></form>
+</section>
+
+<div id="modal" hidden><div class="box" id="modal-box"></div></div>
+<div id="toast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+(function(){
+'use strict';
+/* ---------- utilidades ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => 'S/ ' + Number(n).toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const pad = (n, l) => String(n).padStart(l, '0');
+const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1, 2) + '-' + pad(d.getDate(), 2);
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const TODAY = ymd(new Date());
+const parseYmd = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const dayLabel = s => parseYmd(s).toLocaleDateString('es-PE', {weekday: 'long', day: 'numeric', month: 'long'});
+const shortDay = s => parseYmd(s).toLocaleDateString('es-PE', {weekday: 'short', day: 'numeric'});
+const nowHM = () => { const d = new Date(); return pad(d.getHours(), 2) + ':' + pad(d.getMinutes(), 2); };
+function hash(str){ let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } return h >>> 0; }
+function rng(seed){ let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), 2600); }
+
+/* ---------- datos de ejemplo ---------- */
+const CITIES = ['Lima', 'Huaral', 'Huacho', 'Barranca'];
+const BASE_ROUTES = [
+  {a: 'Lima', b: 'Huaral', price: 15, dur: '1 h 30 min'},
+  {a: 'Lima', b: 'Huacho', price: 25, dur: '2 h 30 min'},
+  {a: 'Lima', b: 'Barranca', price: 30, dur: '3 h 15 min'},
+  {a: 'Huacho', b: 'Barranca', price: 10, dur: '50 min'}
+];
+const ROUTES = BASE_ROUTES.flatMap((r, i) => [
+  {id: 'R' + i + 'a', base: i, from: r.a, to: r.b, price: r.price, dur: r.dur},
+  {id: 'R' + i + 'b', base: i, from: r.b, to: r.a, price: r.price, dur: r.dur}
+]);
+const SCHED = {
+  0: [['06:00', 'minivan'], ['08:30', 'auto'], ['11:00', 'camioneta'], ['14:00', 'minivan'], ['17:30', 'auto'], ['20:00', 'minivan']],
+  1: [['05:30', 'minibus'], ['07:00', 'minivan'], ['09:00', 'auto'], ['12:30', 'minivan'], ['15:00', 'minibus'], ['18:30', 'camioneta'], ['21:00', 'minivan']],
+  2: [['06:00', 'minibus'], ['10:00', 'minivan'], ['13:30', 'camioneta'], ['16:00', 'minibus'], ['20:30', 'minivan']],
+  3: [['07:00', 'auto'], ['09:30', 'camioneta'], ['13:00', 'auto'], ['17:00', 'minivan'], ['21:30', 'auto']]
+};
+const VT = {
+  auto: {name: 'Automóvil', factor: 1.4, rows: [['D', 0, 1], [2, 3, 4]], plates: ['ABX-214', 'ABX-388'], drivers: ['Carlos Quispe', 'Luis Huamán']},
+  camioneta: {name: 'Camioneta', factor: 1.2, rows: [['D', 0, 1], [2, 3, 4], [5, 6, 7]], plates: ['CDM-517', 'CDM-602'], drivers: ['Jorge Mamani', 'Pedro Flores']},
+  minivan: {name: 'Minivan', factor: 1, rows: [['D', 0, 1, 2], [3, 4, 0, 5], [6, 7, 0, 8], [9, 10, 0, 11], [12, 13, 14, 15]], plates: ['F7K-731', 'F7K-845', 'F7K-902'], drivers: ['Miguel Rojas', 'Raúl Torres', 'Víctor Chávez']},
+  minibus: {name: 'Minibús', factor: 0.8, rows: [['D', 0, 0, 0, 0]].concat(Array.from({length: 6}, (_, i) => [i * 4 + 1, i * 4 + 2, 0, i * 4 + 3, i * 4 + 4])).concat([[25, 26, 27, 28, 29]]), plates: ['BTR-120', 'BTR-256'], drivers: ['Julio Ramos', 'Óscar Vargas']}
+};
+Object.values(VT).forEach(v => { v.seats = v.rows.flat().filter(x => typeof x === 'number' && x > 0); v.cap = v.seats.length; v.cols = Math.max(...v.rows.map(r => r.length)); });
+const NOMBRES = ['María', 'José', 'Rosa', 'Juan', 'Carmen', 'Luis', 'Ana', 'Carlos', 'Julia', 'Pedro', 'Elena', 'Jorge', 'Lucía', 'Miguel', 'Sofía', 'Víctor', 'Diana', 'Raúl', 'Patricia', 'César', 'Gladys', 'Andrés', 'Milagros', 'Fernando'];
+const APELLIDOS = ['Quispe', 'Flores', 'Sánchez', 'García', 'Rodríguez', 'Huamán', 'Mamani', 'Rojas', 'Díaz', 'Torres', 'Vargas', 'Ramos', 'Castillo', 'Chávez', 'Mendoza', 'Gutiérrez', 'Espinoza', 'Salazar', 'Paredes', 'Cruz'];
+
+function routeById(id){ return ROUTES.find(r => r.id === id); }
+function routeLabel(r){ return r.from + ' → ' + r.to; }
+function shiftTime(t, min){ const [h, m] = t.split(':').map(Number); const x = h * 60 + m + min; return pad(Math.floor(x / 60) % 24, 2) + ':' + pad(x % 60, 2); }
+
+const depCache = new Map();
+function departures(date){
+  if (depCache.has(date)) return depCache.get(date);
+  const out = [];
+  ROUTES.forEach(r => {
+    SCHED[r.base].forEach(([t, type], idx) => {
+      const time = r.id.endsWith('b') ? shiftTime(t, 30) : t;
+      const v = VT[type];
+      const k = (idx + r.base + (r.id.endsWith('b') ? 1 : 0)) % v.plates.length;
+      out.push({id: date + '|' + r.id + '|' + time, date, time, route: r, type, plate: v.plates[k], driver: v.drivers[k % v.drivers.length], price: Math.round(r.price * v.factor), cap: v.cap});
+    });
+  });
+  out.sort((a, b) => a.time.localeCompare(b.time));
+  depCache.set(date, out);
+  return out;
+}
+function depById(id){ const date = id.split('|')[0]; return departures(date).find(d => d.id === id); }
+function isClosed(dep){ return dep.date < TODAY || (dep.date === TODAY && dep.time <= nowHM()); }
+
+const preCache = new Map();
+function preSold(dep){
+  if (preCache.has(dep.id)) return preCache.get(dep.id);
+  const r = rng(hash(dep.id));
+  const diff = Math.round((parseYmd(dep.date) - parseYmd(TODAY)) / 864e5);
+  let lo, hi;
+  if (diff < 0 || isClosed(dep)) { lo = 0.55; hi = 0.95; }
+  else if (diff === 0) { lo = 0.3; hi = 0.8; }
+  else if (diff === 1) { lo = 0.15; hi = 0.55; }
+  else { lo = 0.02; hi = 0.3; }
+  const n = Math.floor(dep.cap * (lo + (hi - lo) * r()));
+  const seats = VT[dep.type].seats.slice();
+  for (let i = seats.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [seats[i], seats[j]] = [seats[j], seats[i]]; }
+  const list = seats.slice(0, n).map(s => {
+    const q = rng(hash(dep.id + '#' + s));
+    const ch = q();
+    return {seat: s, nombre: NOMBRES[Math.floor(q() * NOMBRES.length)] + ' ' + APELLIDOS[Math.floor(q() * APELLIDOS.length)] + ' ' + APELLIDOS[Math.floor(q() * APELLIDOS.length)], dni: String(40000000 + Math.floor(q() * 39999999)), canal: ch < 0.35 ? 'Web' : ch < 0.85 ? 'Agencia' : 'WhatsApp', pago: ch < 0.35 ? (q() < 0.6 ? 'Yape' : 'Tarjeta') : (q() < 0.5 ? 'Efectivo' : 'Yape')};
+  });
+  preCache.set(dep.id, list);
+  return list;
+}
+
+/* ---------- estado (localStorage) ---------- */
+const KEY = 'transportes-demo-v1';
+function seedState(){
+  const t = TODAY;
+  return {
+    tickets: [],
+    counters: {B: 1287, F: 214, ENC: 1050, GIR: 310},
+    encomiendas: [
+      {code: 'ENC-1047', fecha: t, origen: 'Lima', destino: 'Huacho', remitente: {nombre: 'Ferretería El Progreso', dni: '20512345671', cel: '987 111 222'}, destinatario: {nombre: 'Rosa Paredes Cruz', dni: '45871236', cel: '956 333 444'}, desc: 'Caja con repuestos', peso: 6, monto: 20, cobro: 'Pagado en origen', estado: 2, hist: [[t, '07:10', 'Recibida en agencia Lima'], [t, '09:00', 'En ruta · F7K-731']]},
+      {code: 'ENC-1048', fecha: t, origen: 'Huacho', destino: 'Lima', remitente: {nombre: 'Julio Salazar Díaz', dni: '41236985', cel: '944 555 666'}, destinatario: {nombre: 'Ana Gutiérrez Ramos', dni: '70412589', cel: '933 777 888'}, desc: 'Sobre con documentos', peso: 0.5, monto: 8, cobro: 'Contra entrega', estado: 3, hist: [[t, '06:40', 'Recibida en agencia Huacho'], [t, '07:30', 'En ruta · BTR-120'], [t, '10:05', 'Llegó a agencia Lima']]},
+      {code: 'ENC-1049', fecha: t, origen: 'Lima', destino: 'Barranca', remitente: {nombre: 'Lucía Mendoza Torres', dni: '46325874', cel: '922 101 202'}, destinatario: {nombre: 'Pedro Castillo Vargas', dni: '43698521', cel: '911 303 404'}, desc: 'Encomienda mediana (ropa)', peso: 4, monto: 18, cobro: 'Pagado en origen', estado: 1, hist: [[t, '08:20', 'Recibida en agencia Lima']]}
+    ],
+    giros: [
+      {code: 'GIR-0307', clave: '4821', fecha: t, origen: 'Lima', destino: 'Huacho', remitente: {nombre: 'Carmen Rojas Díaz', dni: '41785236'}, beneficiario: {nombre: 'Luis Rojas Quispe', dni: '72145896', cel: '955 210 330'}, monto: 300, comision: 9, estado: 'Pendiente'},
+      {code: 'GIR-0308', clave: '1937', fecha: t, origen: 'Huacho', destino: 'Lima', remitente: {nombre: 'Miguel Flores Cruz', dni: '43215698'}, beneficiario: {nombre: 'Elena Flores Ramos', dni: '74589632', cel: '966 120 450'}, monto: 150, comision: 5, estado: 'Pagado'},
+      {code: 'GIR-0309', clave: '7702', fecha: t, origen: 'Lima', destino: 'Barranca', remitente: {nombre: 'Jorge Espinoza Díaz', dni: '40258741'}, beneficiario: {nombre: 'Gladys Espinoza Ruiz', dni: '45698712', cel: '977 330 210'}, monto: 500, comision: 15, estado: 'Pendiente'}
+    ],
+    caja: [
+      {hora: '06:05', concepto: 'Apertura de caja', tipo: 'Apertura', metodo: 'Efectivo', monto: 200},
+      {hora: '07:10', concepto: 'Encomienda ENC-1047', tipo: 'Ingreso', metodo: 'Efectivo', monto: 20},
+      {hora: '08:20', concepto: 'Encomienda ENC-1049', tipo: 'Ingreso', metodo: 'Yape', monto: 18},
+      {hora: '08:45', concepto: 'Giro GIR-0307 (monto + comisión)', tipo: 'Ingreso', metodo: 'Efectivo', monto: 309},
+      {hora: '09:15', concepto: 'Giro GIR-0309 (monto + comisión)', tipo: 'Ingreso', metodo: 'Yape', monto: 515}
+    ]
+  };
+}
+let S;
+function load(){ try { const raw = localStorage.getItem(KEY); if (raw) { const x = JSON.parse(raw); if (x && x.counters) return x; } } catch (e) {} return seedState(); }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+S = load();
+
+function soldSet(dep){
+  const set = new Set(preSold(dep).map(p => p.seat));
+  S.tickets.filter(t => t.dep === dep.id).forEach(t => set.add(t.seat));
+  if (hold && hold.dep === dep.id && hold.until > Date.now() && hold.owner !== 'me') set.add(hold.seat);
+  return set;
+}
+function manifest(dep){
+  const pre = preSold(dep).map(p => ({seat: p.seat, nombre: p.nombre, dni: p.dni, canal: p.canal}));
+  const mine = S.tickets.filter(t => t.dep === dep.id).map(t => ({seat: t.seat, nombre: t.nombre, dni: t.dni, canal: t.canal}));
+  return pre.concat(mine).sort((a, b) => a.seat - b.seat);
+}
+function freeCount(dep){ return dep.cap - soldSet(dep).size; }
+
+function emitTicket({dep, seat, nombre, dni, cel, canal, pago, ruc, razon}){
+  const tipo = ruc && String(ruc).length === 11 ? 'F' : 'B';
+  S.counters[tipo]++;
+  const comp = (tipo === 'F' ? 'F001-' : 'B001-') + pad(S.counters[tipo], 6);
+  const t = {id: 'T' + Date.now(), dep: dep.id, seat, nombre, dni, cel, canal, pago, monto: dep.price, comp, tipoComp: tipo === 'F' ? 'Factura electrónica' : 'Boleta de venta electrónica', ruc: ruc || '', razon: razon || '', fecha: TODAY, hora: nowHM()};
+  S.tickets.push(t);
+  if (canal === 'Agencia') S.caja.push({hora: nowHM(), concepto: 'Pasaje ' + routeLabel(dep.route) + ' ' + dep.time + ' · asiento ' + seat, tipo: 'Ingreso', metodo: pago, monto: dep.price});
+  save();
+  return t;
+}
+
+/* ---------- router ---------- */
+let hold = null; // {dep, seat, until, owner}
+const W = {step: 'search', from: 'Lima', to: 'Huacho', date: TODAY, dep: null, seat: null, pax: {nombre: 'Juan Pérez Quispe', dni: '45678912', cel: '987 654 321', email: ''}, pago: 'Yape', ticket: null, track: ''};
+if (!departures(TODAY).some(d => d.route.from === 'Lima' && d.route.to === 'Huacho' && !isClosed(d))) W.date = ymd(addDays(new Date(), 1));
+const A = {tab: 'vender', date: TODAY, dep: null, seat: null, comp: 'Boleta', pago: 'Efectivo'};
+let timerInt = null;
+
+function view(){ const h = location.hash.replace(/^#\//, '').split('/')[0]; return ['web', 'agencia', 'gerencia'].includes(h) ? h : 'web'; }
+function render(){
+  const v = view();
+  document.querySelectorAll('.views a').forEach(a => a.classList.toggle('on', a.dataset.view === v));
+  clearInterval(timerInt);
+  const app = $('#app');
+  if (v === 'web') app.innerHTML = renderWeb();
+  else if (v === 'agencia') app.innerHTML = renderAgencia();
+  else app.innerHTML = renderGerencia();
+  afterRender();
+}
+function afterRender(){
+  document.querySelectorAll('[data-qr]').forEach(el => {
+    el.innerHTML = '';
+    if (window.QRCode) { try { new QRCode(el, {text: el.dataset.qr, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M}); } catch (e) { el.textContent = el.dataset.qr; } }
+    else el.innerHTML = '<div class="muted" style="font-size:11px;text-align:center">QR<br>' + esc(el.dataset.qr) + '</div>';
+  });
+  const tm = $('#hold-timer');
+  if (tm && hold) {
+    const tick = () => {
+      const s = Math.max(0, Math.round((hold.until - Date.now()) / 1000));
+      tm.textContent = 'Tu asiento ' + hold.seat + ' está reservado por ' + pad(Math.floor(s / 60), 2) + ':' + pad(s % 60, 2) + ' mientras pagas. Si no pagas, se libera solo.';
+      if (s === 0) { clearInterval(timerInt); hold = null; W.step = 'seats'; W.seat = null; toast('Se acabó el tiempo: el asiento se liberó.'); render(); }
+    };
+    tick(); timerInt = setInterval(tick, 1000);
+  }
+}
+
+/* ---------- componentes ---------- */
+function seatMap(dep, picked, ctx){
+  const v = VT[dep.type];
+  const sold = soldSet(dep);
+  let html = '<div class="bus"><div class="front">Frente · ' + esc(v.name) + ' ' + esc(dep.plate) + '</div><div class="seats" style="grid-template-columns:repeat(' + v.cols + ',auto)">';
+  v.rows.forEach(row => {
+    for (let i = 0; i < v.cols; i++) {
+      const x = row[i];
+      if (x === 'D') html += '<div class="seat drv" title="Conductor">CHOF</div>';
+      else if (!x) html += '<div class="seat gap"></div>';
+      else if (sold.has(x) && x !== picked) html += '<button type="button" class="seat sold" disabled aria-label="Asiento ' + x + ' vendido">' + x + '</button>';
+      else html += '<button type="button" class="seat' + (x === picked ? ' pick' : '') + '" data-action="' + ctx + '-seat" data-seat="' + x + '" aria-label="Asiento ' + x + '">' + x + '</button>';
+    }
+  });
+  html += '</div><div class="legend"><span><i></i>Libre</span><span><i class="sold"></i>Vendido</span><span><i class="pick"></i>Elegido</span></div></div>';
+  return html;
+}
+function occBar(dep){
+  const sold = dep.cap - freeCount(dep);
+  const pct = Math.round(sold / dep.cap * 100);
+  const col = pct >= 85 ? 'var(--bad)' : pct >= 55 ? 'var(--accent)' : 'var(--ok)';
+  return '<div class="occ"><div class="track"><i style="width:' + pct + '%;background:' + col + '"></i></div><small>' + sold + '/' + dep.cap + '</small></div>';
+}
+function citySelect(name, val, label){
+  return '<div class="f"><label for="' + name + '">' + label + '</label><select id="' + name + '" name="' + name + '">' + CITIES.map(c => '<option' + (c === val ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></div>';
+}
+function dateOptions(val){
+  let o = '';
+  for (let i = 0; i < 7; i++) { const d = ymd(addDays(new Date(), i)); o += '<option value="' + d + '"' + (d === val ? ' selected' : '') + '>' + (i === 0 ? 'Hoy, ' : i === 1 ? 'Mañana, ' : '') + dayLabel(d) + '</option>'; }
+  return o;
+}
+function ticketCard(t){
+  const dep = depById(t.dep);
+  return '<div class="ticket"><div>' +
+    '<div class="row" style="justify-content:space-between"><b style="font-size:16px">' + esc(routeLabel(dep.route)) + '</b><span class="pill blue">' + esc(t.tipoComp) + ' ' + esc(t.comp) + '</span></div>' +
+    '<div class="muted" style="margin:4px 0 10px">' + esc(dayLabel(dep.date)) + ' · sale ' + esc(dep.time) + ' · ' + esc(dep.route.dur) + ' aprox.</div>' +
+    '<div class="grid g3" style="gap:8px;font-size:13px">' +
+      '<div><span class="muted">Pasajero</span><br><b>' + esc(t.nombre) + '</b></div>' +
+      '<div><span class="muted">DNI</span><br><b>' + esc(t.dni) + '</b></div>' +
+      '<div><span class="muted">Asiento</span><br><b style="font-size:20px">' + t.seat + '</b></div>' +
+      '<div><span class="muted">Vehículo</span><br><b>' + esc(VT[dep.type].name) + ' ' + esc(dep.plate) + '</b></div>' +
+      '<div><span class="muted">Pago</span><br><b>' + esc(t.pago) + '</b></div>' +
+      '<div><span class="muted">Total</span><br><b>' + money(t.monto) + '</b></div>' +
+    '</div>' + (t.ruc ? '<div class="muted" style="margin-top:8px;font-size:12px">RUC ' + esc(t.ruc) + ' · ' + esc(t.razon) + '</div>' : '') +
+    '<div class="muted" style="margin-top:10px;font-size:11.5px">Preséntate en agencia 20 minutos antes. El QR se valida al abordar.</div>' +
+    '</div><div class="qr" data-qr="' + esc(t.comp + '|' + t.dep + '|' + t.seat) + '"></div></div>';
+}
+
+/* ---------- vista: web del pasajero ---------- */
+function stepsBar(cur){
+  const names = [['results', 'Salida'], ['seats', 'Asiento'], ['datos', 'Datos'], ['pago', 'Pago'], ['ok', 'Boleto']];
+  const idx = names.findIndex(n => n[0] === cur);
+  return '<div class="steps">' + names.map((n, i) => '<span class="' + (i < idx ? 'done' : i === idx ? 'on' : '') + '">' + (i + 1) + '. ' + n[1] + '</span>').join('') + '</div>';
+}
+function renderWeb(){
+  let h = '<section class="hero"><div class="road"></div><h1>Viaja seguro, elige tu asiento y paga con Yape</h1><p>Compra tu pasaje en minutos, desde el celular. Recibe tu boleto y tu comprobante electrónico por WhatsApp.</p>' +
+    '<form class="search" data-form="search">' + citySelect('from', W.from, 'Origen') + citySelect('to', W.to, 'Destino') +
+    '<div class="f"><label for="date">Fecha de viaje</label><select id="date" name="date">' + dateOptions(W.date) + '</select></div>' +
+    '<button class="btn acc" type="submit">Buscar viajes</button></form></section>';
+  if (W.step === 'search') {
+    h += '<div class="perks"><div><b>Asiento garantizado</b>Lo eliges en el croquis del vehículo.</div><div><b>Yape o tarjeta</b>Pago seguro con pasarela autorizada.</div><div><b>Boleta o factura</b>Comprobante electrónico al instante.</div><div><b>Por WhatsApp</b>Tu boleto y avisos en tu celular.</div></div>';
+    h += '<div class="grid g2"><div class="card"><h3>Rutas y horarios</h3><p class="muted" style="margin:4px 0 10px">Salidas todos los días.</p><div class="tablewrap"><table><tr><th>Ruta</th><th>Duración</th><th class="r">Desde</th></tr>' +
+      ROUTES.filter(r => r.id.endsWith('a')).map(r => '<tr><td>' + esc(r.from) + ' ⇄ ' + esc(r.to) + '</td><td>' + esc(r.dur) + '</td><td class="r">' + money(Math.round(r.price * VT.minibus.factor)) + '</td></tr>').join('') + '</table></div></div>' +
+      '<div class="card"><h3>Sigue tu encomienda</h3><p class="muted" style="margin:4px 0 10px">Escribe el código que te dieron en agencia. Prueba con <b>ENC-1047</b>.</p><form class="row" data-form="track"><input name="code" placeholder="ENC-0000" value="' + esc(W.track) + '" style="flex:1;min-width:140px" aria-label="Código de encomienda"><button class="btn" type="submit">Buscar</button></form>' + trackResult(W.track) + '</div></div>';
+    return h;
+  }
+  if (W.step === 'results') {
+    const list = departures(W.date).filter(d => d.route.from === W.from && d.route.to === W.to);
+    h += stepsBar('results') + '<h2>' + esc(W.from) + ' → ' + esc(W.to) + '</h2><p class="muted" style="margin:2px 0 12px">' + esc(dayLabel(W.date)) + ' · ' + list.length + ' salidas</p>';
+    if (!list.length) h += '<div class="card">No hay salidas directas para esa ruta en la demo. Prueba Lima → Huacho, Lima → Huaral o Lima → Barranca.</div>';
+    list.forEach(d => {
+      const closed = isClosed(d); const free = freeCount(d);
+      h += '<div class="dep' + (closed ? ' closed' : '') + '"><div><div class="t">' + d.time + '</div><span class="muted" style="font-size:12px">' + esc(d.route.dur) + '</span></div>' +
+        '<div><b>' + esc(VT[d.type].name) + '</b> · ' + d.cap + ' asientos<br><span class="muted" style="font-size:12.5px">' + (closed ? 'Ya partió' : free + ' asientos libres') + '</span></div>' +
+        '<div class="p">' + money(d.price) + '</div>' +
+        '<div style="text-align:right">' + (closed || !free ? '<span class="pill">' + (closed ? 'Cerrada' : 'Agotada') + '</span>' : '<button class="btn" type="button" data-action="web-dep" data-dep="' + esc(d.id) + '">Elegir asiento</button>') + '</div></div>';
+    });
+    return h;
+  }
+  const dep = depById(W.dep);
+  if (W.step === 'seats') {
+    h += stepsBar('seats') + '<div class="split"><div class="card" style="text-align:center"><h3 style="text-align:left">Elige tu asiento</h3><p class="muted" style="text-align:left;margin:2px 0 12px">Los asientos grises ya están vendidos en la web, en agencia o por WhatsApp.</p>' + seatMap(dep, W.seat, 'web') + '</div>' + webSummary(dep, '<button class="btn" style="width:100%" type="button" data-action="web-to-datos"' + (W.seat ? '' : ' disabled') + '>Continuar</button><button class="btn ghost" type="button" data-action="web-back-results" style="width:100%;margin-top:6px">Cambiar de salida</button>') + '</div>';
+    return h;
+  }
+  if (W.step === 'datos') {
+    h += stepsBar('datos') + '<div class="split"><form class="card" data-form="web-datos"><h3>Datos del pasajero</h3><p class="muted" style="margin:2px 0 12px">Datos de prueba ya cargados. No se envían a ningún lado.</p>' +
+      '<div class="grid g2" style="gap:10px"><div class="f"><label for="nombre">Nombres y apellidos</label><input id="nombre" name="nombre" required value="' + esc(W.pax.nombre) + '"></div><div class="f"><label for="dni">DNI</label><input id="dni" name="dni" required inputmode="numeric" pattern="[0-9]{8}" title="8 dígitos" value="' + esc(W.pax.dni) + '"></div>' +
+      '<div class="f"><label for="cel">Celular (WhatsApp)</label><input id="cel" name="cel" required value="' + esc(W.pax.cel) + '"></div><div class="f"><label for="ruc">RUC (solo si quieres factura)</label><input id="ruc" name="ruc" inputmode="numeric" pattern="[0-9]{11}" title="11 dígitos" placeholder="Opcional" value="' + esc(W.pax.ruc || '') + '"></div></div>' +
+      '<button class="btn" type="submit">Ir a pagar</button> <button class="btn ghost" type="button" data-action="web-back-seats">Cambiar asiento</button></form>' + webSummary(dep, '') + '</div>';
+    return h;
+  }
+  if (W.step === 'pago') {
+    h += stepsBar('pago') + '<div class="split"><div class="card"><div class="timer" id="hold-timer"></div><h3>¿Cómo quieres pagar?</h3><p class="muted" style="margin:2px 0 12px">En el sistema real, el cobro pasa por una pasarela autorizada (Izipay, Culqi o Niubiz). Aquí es una simulación.</p>' +
+      '<div class="pay"><button type="button" data-action="web-pay-method" data-m="Yape" class="' + (W.pago === 'Yape' ? 'on' : '') + '"><b><span class="yape">yape</span></b><span class="muted" style="font-size:12.5px">Aprueba el pago desde tu app</span></button>' +
+      '<button type="button" data-action="web-pay-method" data-m="Tarjeta" class="' + (W.pago === 'Tarjeta' ? 'on' : '') + '"><b>Tarjeta</b><span class="muted" style="font-size:12.5px">Débito o crédito, Visa o Mastercard</span></button></div>' +
+      '<button class="btn ok" style="width:100%" type="button" data-action="web-pay">Simular pago aprobado · ' + money(dep.price) + '</button><p class="muted" style="font-size:11.5px;margin:8px 0 0">En la demo no se piden ni se guardan datos de pago.</p></div>' + webSummary(dep, '') + '</div>';
+    return h;
+  }
+  if (W.step === 'ok') {
+    const t = S.tickets.find(x => x.id === W.ticket);
+    h += stepsBar('ok') + '<div class="card"><div class="ok-head"><div class="ic">✓</div><div><h2>¡Listo! Tu pasaje está comprado</h2><span class="muted">Enviamos tu boleto y tu ' + esc(t.tipoComp.toLowerCase()) + ' al WhatsApp ' + esc(t.cel) + '.</span></div></div>' + ticketCard(t) +
+      '<div class="row noprint" style="margin-top:14px"><button class="btn" type="button" data-action="print-ticket" data-id="' + esc(t.id) + '">Descargar boleto</button><button class="btn sec" type="button" data-action="wa-ticket" data-id="' + esc(t.id) + '">Ver mensaje de WhatsApp</button><button class="btn ghost" type="button" data-action="web-new">Comprar otro pasaje</button></div>' +
+      '<p class="muted" style="font-size:12.5px;margin-top:12px">Este asiento ya aparece como vendido en la vista de <a href="#/agencia">Agencia</a>, en el manifiesto y en el panel de <a href="#/gerencia">Gerencia</a>.</p></div>';
+    return h;
+  }
+  return h;
+}
+function webSummary(dep, actions){
+  return '<aside class="card summary"><h3 style="margin-bottom:8px">Tu viaje</h3>' +
+    '<div class="line"><span class="muted">Ruta</span><b>' + esc(routeLabel(dep.route)) + '</b></div>' +
+    '<div class="line"><span class="muted">Fecha</span><b>' + esc(shortDay(dep.date)) + ' · ' + dep.time + '</b></div>' +
+    '<div class="line"><span class="muted">Vehículo</span><b>' + esc(VT[dep.type].name) + '</b></div>' +
+    '<div class="line"><span class="muted">Asiento</span><b>' + (W.seat || '—') + '</b></div>' +
+    '<div class="line"><span class="muted">Total</span><span class="tot">' + money(dep.price) + '</span></div>' +
+    (actions ? '<div style="margin-top:12px">' + actions + '</div>' : '') + '</aside>';
+}
+const ESTADOS = ['Registrada', 'Recibida en agencia', 'En ruta', 'En agencia de destino', 'Entregada'];
+function trackResult(code){
+  if (!code) return '';
+  const e = S.encomiendas.find(x => x.code.toUpperCase() === code.trim().toUpperCase());
+  if (!e) return '<p class="muted" style="margin-top:10px">No encontramos esa encomienda. Revisa el código.</p>';
+  return '<div style="margin-top:12px"><div class="row" style="justify-content:space-between"><b>' + esc(e.code) + ' · ' + esc(e.origen) + ' → ' + esc(e.destino) + '</b><span class="pill ' + (e.estado >= 4 ? 'ok' : 'acc') + '">' + esc(ESTADOS[e.estado]) + '</span></div>' +
+    '<ul class="tl">' + e.hist.map(x => '<li class="done"><b>' + esc(x[2]) + '</b><br><span class="muted">' + esc(shortDay(x[0])) + ' · ' + esc(x[1]) + '</span></li>').join('') + (e.estado < 4 ? '<li><span class="muted">Siguiente: ' + esc(ESTADOS[e.estado + 1]) + '</span></li>' : '') + '</ul></div>';
+}
+
+/* ---------- vista: agencia ---------- */
+function renderAgencia(){
+  const tabs = [['vender', 'Vender pasaje'], ['encomiendas', 'Encomiendas'], ['giros', 'Giros'], ['caja', 'Caja del día']];
+  let h = '<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h2>Agencia Lima · Counter 1</h2><span class="muted">Usuario: Ventas · ' + esc(dayLabel(TODAY)) + '</span></div><span class="pill ok">Caja abierta</span></div>';
+  h += '<nav class="sub">' + tabs.map(t => '<a href="#/agencia" data-action="ag-tab" data-tab="' + t[0] + '" class="' + (A.tab === t[0] ? 'on' : '') + '">' + t[1] + '</a>').join('') + '</nav>';
+  if (A.tab === 'vender') return h + agVender();
+  if (A.tab === 'encomiendas') return h + agEncomiendas();
+  if (A.tab === 'giros') return h + agGiros();
+  return h + agCaja();
+}
+function agVender(){
+  let deps = departures(A.date).filter(d => !isClosed(d) && d.route.from === 'Lima');
+  let note = '';
+  if (!deps.length && A.date === TODAY) { A.date = ymd(addDays(new Date(), 1)); deps = departures(A.date).filter(d => d.route.from === 'Lima'); note = '<p class="muted" style="margin:4px 0 0;font-size:12.5px">Hoy ya partieron todas las salidas: se muestran las de mañana.</p>'; }
+  if (!A.dep || !deps.find(d => d.id === A.dep)) A.dep = deps.length ? deps[0].id : null;
+  if (!A.dep) return '<div class="card">No hay salidas disponibles para esa fecha.</div>';
+  const dep = depById(A.dep);
+  let h = '<div class="split"><div class="grid" style="gap:14px"><div class="card"><div class="row" style="justify-content:space-between"><h3>Salidas desde Lima</h3><select id="ag-date" style="width:auto" aria-label="Fecha de las salidas">' + dateOptions(A.date) + '</select></div>' + note + '<div class="tablewrap" style="margin-top:10px;max-height:300px;overflow-y:auto"><table><tr><th>Hora</th><th>Ruta</th><th>Vehículo</th><th>Ocupación</th><th class="r">Precio</th></tr>' +
+    deps.map(d => '<tr style="cursor:pointer;' + (d.id === A.dep ? 'background:#E6EEFB' : '') + '" data-action="ag-dep" data-dep="' + esc(d.id) + '"><td><b>' + d.time + '</b></td><td>' + esc(routeLabel(d.route)) + '</td><td>' + esc(VT[d.type].name) + '<br><small class="muted">' + esc(d.plate) + '</small></td><td>' + occBar(d) + '</td><td class="r">' + money(d.price) + '</td></tr>').join('') + '</table></div></div>' +
+    '<div class="card" style="text-align:center"><h3 style="text-align:left">' + esc(routeLabel(dep.route)) + ' · ' + dep.time + '</h3><p class="muted" style="text-align:left;margin:2px 0 12px">La web y WhatsApp venden sobre este mismo croquis.</p>' + seatMap(dep, A.seat, 'ag') + '</div></div>';
+  h += '<form class="card" data-form="ag-venta"><h3>Venta en counter</h3><p class="muted" style="margin:2px 0 10px">Asiento: <b>' + (A.seat || 'elige uno en el croquis') + '</b> · ' + money(dep.price) + '</p>' +
+    '<div class="f"><label for="ag-nombre">Pasajero</label><input id="ag-nombre" name="nombre" required value="Rosa Huamán Torres"></div>' +
+    '<div class="grid g2" style="gap:10px"><div class="f"><label for="ag-dni">DNI</label><input id="ag-dni" name="dni" required pattern="[0-9]{8}" title="8 dígitos" value="47852369"></div><div class="f"><label for="ag-cel">Celular</label><input id="ag-cel" name="cel" value="955 444 333"></div></div>' +
+    '<div class="f"><label for="ag-comp">Comprobante</label><select id="ag-comp" name="comp" data-action="ag-comp"><option' + (A.comp === 'Boleta' ? ' selected' : '') + '>Boleta</option><option' + (A.comp === 'Factura' ? ' selected' : '') + '>Factura</option></select></div>' +
+    (A.comp === 'Factura' ? '<div class="grid g2" style="gap:10px"><div class="f"><label for="ag-ruc">RUC</label><input id="ag-ruc" name="ruc" required pattern="[0-9]{11}" title="11 dígitos" value="20601234567"></div><div class="f"><label for="ag-razon">Razón social</label><input id="ag-razon" name="razon" required value="Comercial Andina S.A.C."></div></div>' : '') +
+    '<div class="f"><label for="ag-pago">Medio de pago</label><select id="ag-pago" name="pago">' + ['Efectivo', 'Yape', 'Tarjeta'].map(m => '<option' + (A.pago === m ? ' selected' : '') + '>' + m + '</option>').join('') + '</select></div>' +
+    '<button class="btn ok" style="width:100%" type="submit"' + (A.seat ? '' : ' disabled') + '>Vender y emitir comprobante</button>' +
+    '<button class="btn ghost" style="width:100%;margin-top:6px" type="button" data-action="manifest" data-dep="' + esc(dep.id) + '">Ver manifiesto de pasajeros</button></form></div>';
+  return h;
+}
+function agEncomiendas(){
+  let h = '<div class="split"><div class="card"><h3>Encomiendas</h3><p class="muted" style="margin:2px 0 10px">Cada cambio de estado se avisa por WhatsApp al destinatario.</p><div class="tablewrap"><table><tr><th>Código</th><th>Ruta</th><th>Destinatario</th><th>Estado</th><th class="r">Acción</th></tr>' +
+    S.encomiendas.slice().reverse().map(e => '<tr><td><b>' + esc(e.code) + '</b><br><small class="muted">' + esc(e.desc) + ' · ' + e.peso + ' kg</small></td><td>' + esc(e.origen) + ' → ' + esc(e.destino) + '</td><td>' + esc(e.destinatario.nombre) + '<br><small class="muted">' + esc(e.cobro) + ' · ' + money(e.monto) + '</small></td><td><span class="pill ' + (e.estado >= 4 ? 'ok' : e.estado === 3 ? 'blue' : 'acc') + '">' + esc(ESTADOS[e.estado]) + '</span></td><td class="r">' +
+      (e.estado < 3 ? '<button class="btn sm sec" type="button" data-action="enc-next" data-code="' + esc(e.code) + '">' + (e.estado === 1 ? 'Despachar' : 'Marcar llegada') + '</button>' : e.estado === 3 ? '<button class="btn sm" type="button" data-action="enc-deliver" data-code="' + esc(e.code) + '">Entregar</button>' : '<span class="muted">—</span>') + '</td></tr>').join('') + '</table></div></div>';
+  h += '<form class="card" data-form="enc-new"><h3>Registrar encomienda</h3><p class="muted" style="margin:2px 0 10px">Datos de ejemplo cargados.</p>' +
+    '<div class="grid g2" style="gap:10px">' + citySelect('enc-origen', 'Lima', 'Origen') + citySelect('enc-destino', 'Huacho', 'Destino') + '</div>' +
+    '<div class="f"><label for="enc-rem">Remitente y DNI</label><div class="grid g2" style="gap:8px"><input id="enc-rem" name="rem" required value="Carlos Díaz Salazar"><input name="remdni" required pattern="[0-9]{8}" title="8 dígitos" value="41258963" aria-label="DNI del remitente"></div></div>' +
+    '<div class="f"><label for="enc-des">Destinatario y DNI</label><div class="grid g2" style="gap:8px"><input id="enc-des" name="des" required value="Milagros Díaz Cruz"><input name="desdni" required pattern="[0-9]{8}" title="8 dígitos" value="72589641" aria-label="DNI del destinatario"></div></div>' +
+    '<div class="grid g2" style="gap:10px"><div class="f"><label for="enc-cel">Celular destinatario</label><input id="enc-cel" name="cel" value="944 222 111"></div><div class="f"><label for="enc-peso">Peso (kg)</label><input id="enc-peso" name="peso" type="number" min="0.1" step="0.1" value="3"></div></div>' +
+    '<div class="f"><label for="enc-desc">Contenido</label><input id="enc-desc" name="desc" value="Caja con víveres"></div>' +
+    '<div class="f"><label for="enc-cobro">Cobro</label><select id="enc-cobro" name="cobro"><option>Pagado en origen</option><option>Contra entrega</option></select></div>' +
+    '<button class="btn ok" style="width:100%" type="submit">Registrar y emitir guía</button></form></div>';
+  return h;
+}
+function encTarifa(o, d, peso){ const r = ROUTES.find(x => x.from === o && x.to === d); const base = r ? r.price * 0.4 : 8; return Math.max(8, Math.round(base + peso * 1.5)); }
+function agGiros(){
+  let h = '<div class="split"><div class="grid" style="gap:14px"><div class="card"><h3>Giros de dinero</h3><div class="tablewrap" style="margin-top:10px"><table><tr><th>Código</th><th>Ruta</th><th>Beneficiario</th><th class="r">Monto</th><th>Estado</th></tr>' +
+    S.giros.slice().reverse().map(g => '<tr><td><b>' + esc(g.code) + '</b></td><td>' + esc(g.origen) + ' → ' + esc(g.destino) + '</td><td>' + esc(g.beneficiario.nombre) + '<br><small class="muted">DNI ' + esc(g.beneficiario.dni) + '</small></td><td class="r">' + money(g.monto) + '<br><small class="muted">comisión ' + money(g.comision) + '</small></td><td><span class="pill ' + (g.estado === 'Pagado' ? 'ok' : 'acc') + '">' + esc(g.estado) + '</span></td></tr>').join('') + '</table></div></div>' +
+    '<form class="card" data-form="giro-pay"><h3>Pagar un giro</h3><p class="muted" style="margin:2px 0 10px">El beneficiario presenta código, clave y DNI. Prueba con <b>GIR-0307</b>, clave <b>4821</b>, DNI <b>72145896</b>.</p><div class="grid g3" style="gap:8px"><input name="code" required placeholder="Código" aria-label="Código del giro"><input name="clave" required placeholder="Clave" aria-label="Clave"><input name="dni" required placeholder="DNI" aria-label="DNI del beneficiario"></div><button class="btn" type="submit" style="margin-top:10px">Validar y pagar</button></form></div>';
+  h += '<form class="card" data-form="giro-new"><h3>Enviar un giro</h3><p class="muted" style="margin:2px 0 10px">La comisión se calcula sola (3 %, mínimo S/ 5).</p>' +
+    '<div class="grid g2" style="gap:10px">' + citySelect('gir-origen', 'Lima', 'Origen') + citySelect('gir-destino', 'Barranca', 'Destino') + '</div>' +
+    '<div class="f"><label for="gir-rem">Remitente y DNI</label><div class="grid g2" style="gap:8px"><input id="gir-rem" name="rem" required value="Patricia Vargas Ruiz"><input name="remdni" required pattern="[0-9]{8}" title="8 dígitos" value="42369857" aria-label="DNI del remitente"></div></div>' +
+    '<div class="f"><label for="gir-ben">Beneficiario y DNI</label><div class="grid g2" style="gap:8px"><input id="gir-ben" name="ben" required value="Andrés Vargas Paredes"><input name="bendni" required pattern="[0-9]{8}" title="8 dígitos" value="73698521" aria-label="DNI del beneficiario"></div></div>' +
+    '<div class="grid g2" style="gap:10px"><div class="f"><label for="gir-cel">Celular beneficiario</label><input id="gir-cel" name="cel" value="966 777 555"></div><div class="f"><label for="gir-monto">Monto (S/)</label><input id="gir-monto" name="monto" type="number" min="10" step="1" value="250"></div></div>' +
+    '<div class="f"><label for="gir-pago">Medio de pago</label><select id="gir-pago" name="pago"><option>Efectivo</option><option>Yape</option></select></div>' +
+    '<button class="btn ok" style="width:100%" type="submit">Registrar giro</button></form></div>';
+  return h;
+}
+function agCaja(){
+  const tot = {Efectivo: 0, Yape: 0, Tarjeta: 0}; let ing = 0, egr = 0;
+  S.caja.forEach(m => { const s = m.tipo === 'Egreso' ? -m.monto : m.monto; tot[m.metodo] = (tot[m.metodo] || 0) + s; if (m.tipo === 'Egreso') egr += m.monto; else if (m.tipo === 'Ingreso') ing += m.monto; });
+  let h = '<div class="grid g4" style="margin-bottom:14px"><div class="kpi"><span>Ingresos del día</span><b>' + money(ing) + '</b></div><div class="kpi"><span>Egresos (giros pagados)</span><b>' + money(egr) + '</b></div><div class="kpi"><span>Efectivo en caja</span><b>' + money(tot.Efectivo) + '</b></div><div class="kpi"><span>Yape y tarjeta</span><b>' + money((tot.Yape || 0) + (tot.Tarjeta || 0)) + '</b></div></div>';
+  h += '<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:10px"><h3>Movimientos de caja · Counter 1</h3><button class="btn sm" type="button" data-action="caja-close">Cerrar caja</button></div><div class="tablewrap"><table><tr><th>Hora</th><th>Concepto</th><th>Tipo</th><th>Medio</th><th class="r">Monto</th></tr>' +
+    S.caja.slice().reverse().map(m => '<tr><td>' + esc(m.hora) + '</td><td>' + esc(m.concepto) + '</td><td><span class="pill ' + (m.tipo === 'Egreso' ? 'bad' : m.tipo === 'Ingreso' ? 'ok' : '') + '">' + esc(m.tipo) + '</span></td><td>' + esc(m.metodo) + '</td><td class="r">' + (m.tipo === 'Egreso' ? '− ' : '') + money(m.monto) + '</td></tr>').join('') + '</table></div></div>';
+  return h;
+}
+
+/* ---------- vista: gerencia ---------- */
+function daySales(date){
+  let pax = 0, total = 0; const byRoute = {}; const byCh = {Web: 0, Agencia: 0, WhatsApp: 0};
+  departures(date).forEach(d => {
+    const pre = preSold(d); const mine = S.tickets.filter(t => t.dep === d.id);
+    const n = pre.length + mine.length; pax += n; total += n * d.price;
+    const k = d.route.from + ' ⇄ ' + d.route.to; const k2 = [d.route.from, d.route.to].sort().join(' ⇄ ');
+    byRoute[k2] = (byRoute[k2] || 0) + n * d.price;
+    pre.forEach(p => byCh[p.canal] += d.price); mine.forEach(t => byCh[t.canal] = (byCh[t.canal] || 0) + d.price);
+  });
+  return {pax, total, byRoute, byCh};
+}
+function renderGerencia(){
+  const today = daySales(TODAY);
+  const deps = departures(TODAY);
+  const occ = Math.round(deps.reduce((a, d) => a + (d.cap - freeCount(d)) / d.cap, 0) / deps.length * 100);
+  const encRuta = S.encomiendas.filter(e => e.estado === 2).length;
+  const girPend = S.giros.filter(g => g.estado === 'Pendiente');
+  let h = '<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h2>Panel de gerencia</h2><span class="muted">' + esc(dayLabel(TODAY)) + ' · todas las agencias y canales</span></div><button class="btn sec sm" type="button" data-action="export">Exportar salidas a Excel (CSV)</button></div>';
+  h += '<div class="grid g5" style="margin-bottom:14px"><div class="kpi"><span>Ventas de pasajes hoy</span><b>' + money(today.total) + '</b></div><div class="kpi"><span>Pasajeros hoy</span><b>' + today.pax + '</b></div><div class="kpi"><span>Ocupación promedio</span><b>' + occ + ' %</b></div><div class="kpi"><span>Encomiendas en ruta</span><b>' + encRuta + '</b></div><div class="kpi"><span>Giros por pagar</span><b>' + girPend.length + ' · ' + money(girPend.reduce((a, g) => a + g.monto, 0)) + '</b></div></div>';
+  const days = Array.from({length: 7}, (_, i) => ymd(addDays(new Date(), i - 6)));
+  const vals = days.map(d => daySales(d).total); const max = Math.max(...vals, 1);
+  h += '<div class="grid g2" style="margin-bottom:14px"><div class="card"><h3>Ventas de pasajes · últimos 7 días</h3><div class="bars">' + days.map((d, i) => '<div class="b' + (i === 6 ? ' today' : '') + '"><em>' + Math.round(vals[i] / 100) / 10 + 'k</em><i style="height:' + Math.max(4, Math.round(vals[i] / max * 130)) + 'px"></i><small>' + esc(shortDay(d)) + '</small></div>').join('') + '</div></div>';
+  const rk = Object.entries(today.byRoute).sort((a, b) => b[1] - a[1]); const rmax = Math.max(...rk.map(x => x[1]), 1);
+  const chTot = Object.values(today.byCh).reduce((a, b) => a + b, 0) || 1;
+  h += '<div class="card"><h3>Ventas de hoy por ruta</h3>' + rk.map(([k, v]) => '<div class="hbar"><span>' + esc(k) + '</span><div class="track"><i style="width:' + Math.round(v / rmax * 100) + '%"></i></div><b style="text-align:right">' + money(v) + '</b></div>').join('') +
+    '<h3 style="margin-top:14px">Por canal</h3>' + Object.entries(today.byCh).map(([k, v]) => '<div class="hbar"><span>' + esc(k) + '</span><div class="track"><i style="width:' + Math.round(v / chTot * 100) + '%;background:' + (k === 'Web' ? 'var(--brand-2)' : k === 'WhatsApp' ? 'var(--wa)' : 'var(--accent)') + '"></i></div><b style="text-align:right">' + Math.round(v / chTot * 100) + ' %</b></div>').join('') + '</div></div>';
+  h += '<div class="card" style="margin-bottom:14px"><h3>Salidas de hoy</h3><div class="tablewrap" style="margin-top:10px"><table><tr><th>Hora</th><th>Ruta</th><th>Vehículo</th><th>Conductor</th><th>Ocupación</th><th class="r">Recaudado</th><th>Estado</th><th></th></tr>' +
+    deps.map(d => { const n = d.cap - freeCount(d); return '<tr><td><b>' + d.time + '</b></td><td>' + esc(routeLabel(d.route)) + '</td><td>' + esc(VT[d.type].name) + '<br><small class="muted">' + esc(d.plate) + '</small></td><td>' + esc(d.driver) + '</td><td>' + occBar(d) + '</td><td class="r">' + money(n * d.price) + '</td><td>' + (isClosed(d) ? '<span class="pill">Partió</span>' : '<span class="pill ok">En venta</span>') + '</td><td><button class="btn sm ghost" type="button" data-action="manifest" data-dep="' + esc(d.id) + '">Manifiesto</button></td></tr>'; }).join('') + '</table></div></div>';
+  h += '<div class="grid g2"><div class="card"><h3>Flota</h3><p class="muted" style="margin:2px 0 10px">Cada tipo tiene su croquis. Sumar un vehículo nuevo se hace desde aquí.</p><div class="tablewrap"><table><tr><th>Tipo</th><th>Asientos</th><th>Placas</th></tr>' +
+    Object.values(VT).map(v => '<tr><td>' + esc(v.name) + '</td><td>' + v.cap + '</td><td>' + v.plates.map(esc).join(', ') + '</td></tr>').join('') + '</table></div></div>' +
+    '<div class="card"><h3>Rutas y tarifas</h3><p class="muted" style="margin:2px 0 10px">Precio por tipo de vehículo.</p><div class="tablewrap"><table><tr><th>Ruta</th>' + Object.values(VT).map(v => '<th class="r">' + esc(v.name) + '</th>').join('') + '</tr>' +
+    ROUTES.filter(r => r.id.endsWith('a')).map(r => '<tr><td>' + esc(r.from) + ' ⇄ ' + esc(r.to) + '</td>' + Object.values(VT).map(v => '<td class="r">' + money(Math.round(r.price * v.factor)) + '</td>').join('') + '</tr>').join('') + '</table></div></div></div>';
+  return h;
+}
+
+/* ---------- modal ---------- */
+function openModal(html){ $('#modal-box').innerHTML = html; $('#modal').hidden = false; afterRender(); }
+function closeModal(){ $('#modal').hidden = true; document.body.classList.remove('printing'); }
+function manifestHtml(dep){
+  const list = manifest(dep);
+  return '<div class="row" style="justify-content:space-between;margin-bottom:6px"><h2>Manifiesto de pasajeros</h2><div class="row noprint"><button class="btn sm" type="button" data-action="print">Imprimir / PDF</button><button class="btn sm ghost" type="button" data-action="modal-close">Cerrar</button></div></div>' +
+    '<p class="muted" style="margin:0 0 12px">Transportes Demo · ' + esc(routeLabel(dep.route)) + ' · ' + esc(dayLabel(dep.date)) + ' · ' + dep.time + '<br>' + esc(VT[dep.type].name) + ' ' + esc(dep.plate) + ' · Conductor: ' + esc(dep.driver) + ' · ' + list.length + ' de ' + dep.cap + ' asientos</p>' +
+    '<div class="tablewrap"><table><tr><th>Asiento</th><th>Pasajero</th><th>DNI</th><th>Canal</th></tr>' + list.map(p => '<tr><td><b>' + p.seat + '</b></td><td>' + esc(p.nombre) + '</td><td>' + esc(p.dni) + '</td><td>' + esc(p.canal) + '</td></tr>').join('') + '</table></div>';
+}
+
+/* ---------- WhatsApp simulado ---------- */
+const chat = [];
+function waPush(who, text){ chat.push({who, text}); const box = $('#wa-msgs'); box.innerHTML = chat.map(m => '<div class="m ' + m.who + '">' + esc(m.text) + '</div>').join(''); box.scrollTop = box.scrollHeight; }
+function waChips(list){ $('#wa-chips').innerHTML = list.map(c => '<button type="button" data-action="wa-chip" data-q="' + esc(c) + '">' + esc(c) + '</button>').join(''); }
+function waAnswer(q){
+  const t = q.toLowerCase();
+  const enc = q.toUpperCase().match(/ENC-\d{4}/);
+  if (enc) { const e = S.encomiendas.find(x => x.code === enc[0]); return e ? 'Tu encomienda ' + e.code + ' (' + e.origen + ' → ' + e.destino + ') está: ' + ESTADOS[e.estado] + '.\nÚltimo movimiento: ' + e.hist[e.hist.length - 1][2] + ' a las ' + e.hist[e.hist.length - 1][1] + '.' : 'No encuentro ese código. ¿Me lo confirmas?'; }
+  if (/horario|salida|hora|hoy|viaj/.test(t)) {
+    const list = departures(TODAY).filter(d => d.route.from === 'Lima' && d.route.to === 'Huacho' && !isClosed(d)).slice(0, 4);
+    if (!list.length) return 'Hoy ya no quedan salidas Lima → Huacho. Mañana salimos desde las 05:30. ¿Te reservo?';
+    return 'Próximas salidas Lima → Huacho hoy:\n' + list.map(d => '• ' + d.time + ' · ' + VT[d.type].name + ' · ' + freeCount(d) + ' asientos libres · ' + money(d.price)).join('\n') + '\n\nPuedes elegir tu asiento y pagar con Yape aquí: ' + location.href.split('#')[0] + '#/web';
+  }
+  if (/precio|cuesta|cu[aá]nto|tarifa/.test(t)) return 'Tarifas desde Lima:\n' + ROUTES.filter(r => r.from === 'Lima').map(r => '• ' + r.to + ': desde ' + money(Math.round(r.price * VT.minibus.factor)) + ' (minibús) hasta ' + money(Math.round(r.price * VT.auto.factor)) + ' (automóvil)').join('\n');
+  if (/encomienda|paquete|env[ií]o/.test(t)) return 'Para seguir tu encomienda, escríbeme el código que te dieron en agencia (por ejemplo ENC-1047).';
+  if (/giro|dinero/.test(t)) return 'Enviamos giros entre todas nuestras agencias. La comisión es 3 % (mínimo S/ 5) y el beneficiario cobra con su código, clave y DNI.';
+  if (/persona|asesor|humano|ayuda/.test(t)) return 'Listo, te paso con una persona del equipo de la agencia Lima. Te responde en unos minutos. 🙌';
+  return 'Hola, soy el asistente de Transportes Demo. Puedo ayudarte con:\n• Horarios y asientos libres\n• Precios\n• Seguimiento de encomiendas\n• Giros\n¿Qué necesitas?';
+}
+function waAsk(q){ waPush('out', q); setTimeout(() => waPush('in', waAnswer(q)), 450); }
+function waOpen(){
+  $('#wa').hidden = false;
+  if (!chat.length) { waPush('in', '¡Hola! 👋 Soy el asistente de Transportes Demo. ¿En qué te ayudo?'); waChips(['Horarios de hoy a Huacho', '¿Cuánto cuesta?', 'Seguir ENC-1047', 'Hablar con una persona']); }
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-action]'); if (!el) return;
+  const a = el.dataset.action;
+  if (a === 'reset') { try { localStorage.removeItem(KEY); } catch (x) {} S = seedState(); hold = null; Object.assign(W, {step: 'search', dep: null, seat: null, ticket: null}); A.seat = null; save(); toast('Datos de prueba reiniciados.'); render(); return; }
+  if (a === 'web-dep') { W.dep = el.dataset.dep; W.seat = null; W.step = 'seats'; render(); window.scrollTo(0, 0); return; }
+  if (a === 'web-seat') { W.seat = Number(el.dataset.seat); render(); return; }
+  if (a === 'web-to-datos') { W.step = 'datos'; render(); return; }
+  if (a === 'web-back-results') { W.step = 'results'; render(); return; }
+  if (a === 'web-back-seats') { hold = null; W.step = 'seats'; render(); return; }
+  if (a === 'web-pay-method') { W.pago = el.dataset.m; render(); return; }
+  if (a === 'web-pay') {
+    const dep = depById(W.dep);
+    if (S.tickets.some(t => t.dep === dep.id && t.seat === W.seat) || preSold(dep).some(p => p.seat === W.seat)) { toast('Ese asiento acaba de venderse. Elige otro.'); W.step = 'seats'; W.seat = null; render(); return; }
+    const t = emitTicket({dep, seat: W.seat, nombre: W.pax.nombre, dni: W.pax.dni, cel: W.pax.cel, canal: 'Web', pago: W.pago, ruc: W.pax.ruc, razon: W.pax.ruc ? 'Empresa del pasajero' : ''});
+    hold = null; W.ticket = t.id; W.step = 'ok'; render(); window.scrollTo(0, 0); return;
+  }
+  if (a === 'web-new') { Object.assign(W, {step: 'search', dep: null, seat: null, ticket: null}); render(); return; }
+  if (a === 'print-ticket') { const t = S.tickets.find(x => x.id === el.dataset.id); openModal('<div class="row noprint" style="justify-content:flex-end;margin-bottom:8px"><button class="btn sm" type="button" data-action="print">Imprimir / PDF</button><button class="btn sm ghost" type="button" data-action="modal-close">Cerrar</button></div><h2 style="margin-bottom:10px">Transportes Demo · Boleto de viaje</h2>' + ticketCard(t)); return; }
+  if (a === 'wa-ticket') { const t = S.tickets.find(x => x.id === el.dataset.id); const d = depById(t.dep); waOpen(); waPush('in', '✅ ¡Hola, ' + t.nombre.split(' ')[0] + '! Tu pasaje está confirmado.\n' + routeLabel(d.route) + ' · ' + shortDay(d.date) + ' ' + d.time + '\nAsiento ' + t.seat + ' · ' + VT[d.type].name + ' ' + d.plate + '\n' + t.tipoComp + ' ' + t.comp + ' · ' + money(t.monto) + '\n📎 boleto-' + t.comp + '.pdf'); return; }
+  if (a === 'ag-tab') { e.preventDefault(); A.tab = el.dataset.tab; render(); return; }
+  if (a === 'ag-dep') { A.dep = el.dataset.dep; A.seat = null; render(); return; }
+  if (a === 'ag-seat') { A.seat = Number(el.dataset.seat); render(); return; }
+  if (a === 'manifest') { openModal(manifestHtml(depById(el.dataset.dep))); return; }
+  if (a === 'print') { document.body.classList.add('printing'); window.print(); setTimeout(() => document.body.classList.remove('printing'), 500); return; }
+  if (a === 'modal-close') { closeModal(); return; }
+  if (a === 'enc-next') { const x = S.encomiendas.find(y => y.code === el.dataset.code); x.estado++; x.hist.push([TODAY, nowHM(), x.estado === 2 ? 'En ruta · despachada desde ' + x.origen : 'Llegó a agencia ' + x.destino]); save(); toast('Estado actualizado. Se avisó por WhatsApp a ' + x.destinatario.nombre.split(' ')[0] + '.'); render(); return; }
+  if (a === 'enc-deliver') { const x = S.encomiendas.find(y => y.code === el.dataset.code); openModal('<h2>Entregar ' + esc(x.code) + '</h2><p class="muted">Destinatario: ' + esc(x.destinatario.nombre) + '. Pide su DNI (en la demo: <b>' + esc(x.destinatario.dni) + '</b>).' + (x.cobro === 'Contra entrega' ? ' Cobra ' + money(x.monto) + ' contra entrega.' : '') + '</p><form data-form="enc-deliver" data-code="' + esc(x.code) + '" class="row"><input name="dni" required placeholder="DNI del destinatario" style="flex:1;min-width:160px" aria-label="DNI del destinatario"><button class="btn ok" type="submit">Confirmar entrega</button><button class="btn ghost" type="button" data-action="modal-close">Cancelar</button></form>'); return; }
+  if (a === 'caja-close') { toast('Caja cerrada: el reporte del día queda en el panel de gerencia.'); return; }
+  if (a === 'export') {
+    const rows = [['Hora', 'Ruta', 'Vehiculo', 'Placa', 'Conductor', 'Vendidos', 'Capacidad', 'Recaudado']].concat(departures(TODAY).map(d => [d.time, routeLabel(d.route), VT[d.type].name, d.plate, d.driver, d.cap - freeCount(d), d.cap, (d.cap - freeCount(d)) * d.price]));
+    const csv = '﻿' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
+    const link = document.createElement('a'); link.href = url; link.download = 'salidas-' + TODAY + '.csv'; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); return;
+  }
+  if (a === 'wa-open') { waOpen(); return; }
+  if (a === 'wa-close') { $('#wa').hidden = true; return; }
+  if (a === 'wa-chip') { waAsk(el.dataset.q); return; }
+});
+document.addEventListener('change', e => {
+  if (e.target.matches('[data-action="ag-comp"]')) { A.comp = e.target.value; render(); }
+  if (e.target.id === 'ag-pago') A.pago = e.target.value;
+  if (e.target.id === 'ag-date') { A.date = e.target.value; A.dep = null; A.seat = null; render(); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target; const kind = f.dataset.form; if (!kind) return;
+  e.preventDefault();
+  const v = Object.fromEntries(new FormData(f).entries());
+  if (kind === 'search') { W.from = v.from; W.to = v.to; W.date = v.date; if (W.from === W.to) { toast('Elige un destino distinto al origen.'); return; } W.step = 'results'; W.seat = null; hold = null; render(); return; }
+  if (kind === 'track') { W.track = v.code || ''; render(); return; }
+  if (kind === 'web-datos') { W.pax = {nombre: v.nombre.trim(), dni: v.dni.trim(), cel: v.cel.trim(), ruc: (v.ruc || '').trim()}; hold = {dep: W.dep, seat: W.seat, until: Date.now() + 10 * 60 * 1000, owner: 'me'}; W.step = 'pago'; render(); return; }
+  if (kind === 'ag-venta') {
+    const dep = depById(A.dep); if (!A.seat) return;
+    const t = emitTicket({dep, seat: A.seat, nombre: v.nombre.trim(), dni: v.dni.trim(), cel: v.cel, canal: 'Agencia', pago: v.pago, ruc: A.comp === 'Factura' ? v.ruc : '', razon: v.razon || ''});
+    A.seat = null; render();
+    openModal('<div class="ok-head"><div class="ic">✓</div><div><h2>Venta registrada</h2><span class="muted">' + esc(t.tipoComp) + ' ' + esc(t.comp) + ' emitida y enviada a SUNAT por el proveedor autorizado (simulado).</span></div></div>' + ticketCard(t) + '<div class="row noprint" style="margin-top:12px"><button class="btn" type="button" data-action="print">Imprimir boleto</button><button class="btn ghost" type="button" data-action="modal-close">Cerrar</button></div>');
+    return;
+  }
+  if (kind === 'enc-new') {
+    const o = f.querySelector('[name="enc-origen"]').value, d = f.querySelector('[name="enc-destino"]').value;
+    if (o === d) { toast('El destino debe ser distinto al origen.'); return; }
+    const peso = Math.max(0.1, Number(v.peso) || 1); const monto = encTarifa(o, d, peso);
+    S.counters.ENC++; const code = 'ENC-' + S.counters.ENC;
+    S.encomiendas.push({code, fecha: TODAY, origen: o, destino: d, remitente: {nombre: v.rem, dni: v.remdni}, destinatario: {nombre: v.des, dni: v.desdni, cel: v.cel}, desc: v.desc || 'Encomienda', peso, monto, cobro: v.cobro, estado: 1, hist: [[TODAY, nowHM(), 'Recibida en agencia ' + o]]});
+    if (v.cobro === 'Pagado en origen') S.caja.push({hora: nowHM(), concepto: 'Encomienda ' + code, tipo: 'Ingreso', metodo: 'Efectivo', monto});
+    save(); render();
+    openModal('<div class="ok-head"><div class="ic">✓</div><div><h2>Encomienda ' + esc(code) + '</h2><span class="muted">Tarifa ' + money(monto) + ' · ' + esc(v.cobro) + '. Se emitió la guía de remisión del transportista (simulado) y se envió el código por WhatsApp al destinatario.</span></div></div><p>El destinatario puede seguirla en la web con el código <b>' + esc(code) + '</b>.</p><button class="btn" type="button" data-action="modal-close">Listo</button>');
+    return;
+  }
+  if (kind === 'enc-deliver') {
+    const x = S.encomiendas.find(y => y.code === f.dataset.code);
+    if (v.dni.trim() !== x.destinatario.dni) { toast('El DNI no coincide con el destinatario. No se entrega.'); return; }
+    x.estado = 4; x.hist.push([TODAY, nowHM(), 'Entregada a ' + x.destinatario.nombre]);
+    if (x.cobro === 'Contra entrega') S.caja.push({hora: nowHM(), concepto: 'Encomienda ' + x.code + ' (contra entrega)', tipo: 'Ingreso', metodo: 'Efectivo', monto: x.monto});
+    save(); closeModal(); toast('Encomienda entregada.'); render(); return;
+  }
+  if (kind === 'giro-new') {
+    const o = f.querySelector('[name="gir-origen"]').value, d = f.querySelector('[name="gir-destino"]').value;
+    if (o === d) { toast('El destino debe ser distinto al origen.'); return; }
+    const monto = Math.max(10, Math.round(Number(v.monto) || 0)); const comision = Math.max(5, Math.round(monto * 0.03));
+    S.counters.GIR++; const code = 'GIR-' + pad(S.counters.GIR, 4); const clave = pad(Math.floor(1000 + Math.random() * 9000), 4);
+    S.giros.push({code, clave, fecha: TODAY, origen: o, destino: d, remitente: {nombre: v.rem, dni: v.remdni}, beneficiario: {nombre: v.ben, dni: v.bendni, cel: v.cel}, monto, comision, estado: 'Pendiente'});
+    S.caja.push({hora: nowHM(), concepto: 'Giro ' + code + ' (monto + comisión)', tipo: 'Ingreso', metodo: v.pago, monto: monto + comision});
+    save(); render();
+    openModal('<div class="ok-head"><div class="ic">✓</div><div><h2>Giro ' + esc(code) + ' registrado</h2><span class="muted">Monto ' + money(monto) + ' + comisión ' + money(comision) + ' = ' + money(monto + comision) + '</span></div></div><p>Clave de cobro: <b style="font-size:20px;letter-spacing:.1em">' + clave + '</b><br><span class="muted">Se envió por WhatsApp al beneficiario (' + esc(v.ben) + '). Cobra en la agencia ' + esc(d) + ' con su DNI.</span></p><button class="btn" type="button" data-action="modal-close">Listo</button>');
+    return;
+  }
+  if (kind === 'giro-pay') {
+    const g = S.giros.find(y => y.code.toUpperCase() === v.code.trim().toUpperCase());
+    if (!g) { toast('No existe ese código de giro.'); return; }
+    if (g.estado === 'Pagado') { toast('Ese giro ya fue pagado.'); return; }
+    if (g.clave !== v.clave.trim() || g.beneficiario.dni !== v.dni.trim()) { toast('La clave o el DNI no coinciden. No se paga.'); return; }
+    g.estado = 'Pagado'; S.caja.push({hora: nowHM(), concepto: 'Pago de giro ' + g.code + ' a ' + g.beneficiario.nombre, tipo: 'Egreso', metodo: 'Efectivo', monto: g.monto});
+    save(); toast('Giro pagado: ' + money(g.monto) + ' a ' + g.beneficiario.nombre + '.'); render(); return;
+  }
+});
+$('#wa-form').addEventListener('submit', e => { e.preventDefault(); const i = $('#wa-input'); const q = i.value.trim(); if (!q) return; i.value = ''; waAsk(q); });
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
+window.addEventListener('hashchange', render);
+if (!location.hash) history.replaceState(null, '', '#/web');
+render();
+})();
+</script>
+</body>
+</html>
